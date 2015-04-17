@@ -101,8 +101,8 @@ class dmap_record(object):
         self.addScalar('txpl', 0, np.int16)
         self.addScalar('mpinc', 0, np.int16)
         self.addScalar('mppul', 8, np.int16)
-        self.addScalar('mplgs', 5, np.int16)
-        self.addScalar('nrang', 75, np.int16)
+        self.addScalar('mplgs', 3, np.int16)
+        self.addScalar('nrang', 4, np.int16)
         self.addScalar('frang', 0, np.int16)
         self.addScalar('rsep', 0, np.int16)
         self.addScalar('xcf', 0, np.int16)
@@ -205,8 +205,8 @@ class rawacf_record(dmap_record):
         self.addVector('ltab', 0, (2, self.scalars['mplgs'].getData()), np.int16)
         self.addVector('slist', 0, (self.scalars['nrang'].getData()), np.int16)
         self.addVector('pwr0', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('acfd', 0, (2, self.scalars['mplgs'].getData(), self.scalars['nrang'].getData()), np.int16)
-        self.addVector('xcfd', 0, (2, self.scalars['mplgs'].getData(), self.scalars['nrang'].getData()), np.int16)
+        self.addVector('acfd', 0, (self.scalars['nrang'].getData(), self.scalars['mplgs'].getData(), 2), np.int16)
+        self.addVector('xcfd', 0, (self.scalars['nrang'].getData(), self.scalars['mplgs'].getData(), 2), np.int16)
         
         for v in vectors:
             self.vectors[v].setData(vectors[v])
@@ -216,7 +216,10 @@ def main():
     
     # override parameters by passing in dictionary of scalars and vectors
     # rawacf_record class handles data types
-    r = rawacf_record(scalars = {'rsep':5, 'time.us':50}, vectors = {'ptab':[1,2,3,4,5,6,7,8],'ltab':np.array([[0,1],[2,3],[4,5],[6,7],[8,9]])})
+    test_scalars = {'rsep':5, 'time.us':50, 'combf':'this is a test comment override string'}
+    acfd_test = np.arange(2*3*4).reshape(4,3,2)
+    test_vectors = {'ptab':[1,2,3,4,5,6,7,8],'ltab':np.array([[0,1],[2,3],[4,5]]),'acfd':acfd_test}
+    r = rawacf_record(scalars = test_scalars, vectors = test_vectors)
     r.write(dmap_file)
 
     dmap_file.close()
