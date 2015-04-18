@@ -116,7 +116,18 @@ class dmap_record(object):
             self.scalars[s].setData(scalars[s])
         for v in vectors:
             self.scalars[s].setData(scalars[s])
-    
+
+    # sets time from input datetime dt 
+    def setTime(self, dt):
+        self.scalars['time.yr'].setData(dt.year)
+        self.scalars['time.mo'].setData(dt.month)
+        self.scalars['time.dy'].setData(dt.day)
+        self.scalars['time.hr'].setData(dt.hour)
+        self.scalars['time.mt'].setData(dt.minute)
+        self.scalars['time.sc'].setData(dt.second)
+        self.scalars['time.us'].setData(dt.microsecond)
+
+
     def _makeHeader(self):
         datacode = DATACODE
         sze = len(self.vector_str) + len(self.scalar_str) + 4 * np.int32().nbytes
