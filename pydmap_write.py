@@ -159,9 +159,14 @@ class dmap_record(object):
         self.scalars[name] = dmap_var(val, dtype)
     
     # create an array of type dtype of shape shape with default value dval
-    def addVector(self, name, dval, shape, dtype):
+    def addVectorBlank(self, name, dval, shape, dtype):
         val = dval * np.ones(shape, dtype=dtype) 
         self.vectors[name] = dmap_var(val, dtype)
+
+    def addVector(self, name, data, dtype):
+        self.addVectorBlank(name, 0, data.shape, dtype)
+        self.vectors['name'].setData(data)
+
 
 class fitacf_record(dmap_record):
     def __init__(self, scalars = {}, vectors = {}):
@@ -175,62 +180,34 @@ class fitacf_record(dmap_record):
         for s in scalars:
             self.scalars[s].setData(scalars[s])
 
-        self.addVector('ptab', 0, (self.scalars['mppul'].getData()), np.int16)
-        self.addVector('ltab', 0, (2, self.scalars['mplgs'].getData()), np.int16)
-        self.addVector('pwr0', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('slist', 0, (self.scalars['nrang'].getData()), np.int16)
-        self.addVector('nlag', 0, (self.scalars['nrang'].getData()), np.int16)
-        self.addVector('qflg', 0, (self.scalars['nrang'].getData()), np.uint8)
-        self.addVector('gflg', 0, (self.scalars['nrang'].getData()), np.uint8)
-        self.addVector('p_l', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('p_l_e', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('p_s', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('p_s_e', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('v', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('v_e', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('w_l', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('w_l_e', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('w_s', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('w_s_e', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('sd_l', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('sd_s', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('sd_phi', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('ptab', 0, (self.scalars['mppul'].getData()), np.int16)
+        self.addVectorBlank('ltab', 0, (2, self.scalars['mplgs'].getData()), np.int16)
+        self.addVectorBlank('pwr0', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('slist', 0, (self.scalars['nrang'].getData()), np.int16)
+        self.addVectorBlank('nlag', 0, (self.scalars['nrang'].getData()), np.int16)
+        self.addVectorBlank('qflg', 0, (self.scalars['nrang'].getData()), np.uint8)
+        self.addVectorBlank('gflg', 0, (self.scalars['nrang'].getData()), np.uint8)
+        self.addVectorBlank('p_l', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('p_l_e', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('p_s', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('p_s_e', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('v', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('v_e', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('w_l', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('w_l_e', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('w_s', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('w_s_e', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('sd_l', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('sd_s', 0, (self.scalars['nrang'].getData()), np.float32)
+        self.addVectorBlank('sd_phi', 0, (self.scalars['nrang'].getData()), np.float32)
         
         for v in vectors:
             self.vectors[v].setData(vectors[v])
 
 
-class rawacf_record(dmap_record):
-    def __init__(self, scalars = {}, vectors = {}):
-        dmap_record.__init__(self) 
-
-        # create scalars and vectors with default args
-        self.addScalar('rawacf.revision.major', 0, np.int32)
-        self.addScalar('rawacf.revision.minor', 0, np.int32)
-        self.addScalar('thr', 0, np.float32)
-        
-        for s in scalars:
-            self.scalars[s].setData(scalars[s])
-
-        self.addVector('ptab', 0, (self.scalars['mppul'].getData()), np.int16)
-        self.addVector('ltab', 0, (2, self.scalars['mplgs'].getData()), np.int16)
-        self.addVector('slist', 0, (self.scalars['nrang'].getData()), np.int16)
-        self.addVector('pwr0', 0, (self.scalars['nrang'].getData()), np.float32)
-        self.addVector('acfd', 0, (self.scalars['nrang'].getData(), self.scalars['mplgs'].getData(), 2), np.int16)
-        self.addVector('xcfd', 0, (self.scalars['nrang'].getData(), self.scalars['mplgs'].getData(), 2), np.int16)
-        
-        for v in vectors:
-            self.vectors[v].setData(vectors[v])
-    
 def main():
     dmap_file = file('temp.rawacf', 'w')
     
-    # override parameters by passing in dictionary of scalars and vectors
-    # rawacf_record class handles data types
-    test_scalars = {'rsep':5, 'time.us':50, 'combf':'this is a test comment override string'}
-    acfd_test = np.arange(2*3*4).reshape(4,3,2)
-    test_vectors = {'ptab':[1,2,3,4,5,6,7,8],'ltab':np.array([[0,1],[2,3],[4,5]]),'acfd':acfd_test}
-    r = rawacf_record(scalars = test_scalars, vectors = test_vectors)
     r.write(dmap_file)
 
     dmap_file.close()
