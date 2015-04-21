@@ -1,8 +1,19 @@
 import numpy as np
+C = 3e8
+LAMBDA_FIT = 1
+SIGMA_FIT = 2
 
 def calc_lag_times(ltab, mplgs, mpinc):
-    lags = np.float32(np.array(map(lambda x : abs(x[1]-x[0]), ltab[0:mplgs])) * (mpinc / 1e6))
-    return
+    return np.float32(np.array(map(lambda x : abs(x[1]-x[0]), ltab[0:mplgs])) * (mpinc / 1e6))
+
+
+def descale_velocity(v, tfreq):
+    ''' 'descale' target velocity to a baseband frequency shift, v in (m/s), tfreq in kHz'''
+    return v * 2. * tfreq * 1000 / C
+
+def descale_width(w, tfreq):
+    ''' 'descale' target spectral width in (m/s) to a exponential decay rate, tfreq in kHz'''
+    return w * 2. * np.pi * tfreq * 1000 / C
 
 '''
 def CalcNoise(pwr0, ):

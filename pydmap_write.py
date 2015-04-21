@@ -206,9 +206,10 @@ class fitacf_record(dmap_record):
 
 
 def main():
-    dmap_file = file('temp.rawacf', 'w')
-    
-    r.write(dmap_file)
+    dmap_file = file('sandbox/temp.rawacf', 'w')
+    dmap_r = dmap_record()
+   
+    dmap_r.write(dmap_file)
 
     dmap_file.close()
 
