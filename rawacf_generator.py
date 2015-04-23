@@ -13,7 +13,7 @@ QSAMP = 1
 NAVE = 30
 LAGFR = 1200
 SMSEP = 300
-NOISE_SEARCH = 5
+NOISE_SEARCH = .1
 NOISE_MEAN = 0
 TXPL = 300 
 MPINC = 1500
@@ -75,8 +75,8 @@ DEF_VECTOR_OVERRIDES_45KM = {
         'slist' : SLIST}
 
 class rawacf_record(dmap_record):
-    def __init__(self, scalars = {}, vectors = {}):
-        dmap_record.__init__(self)
+    def __init__(self, filename = '', scalars = DEF_SCALAR_OVERRIDES_45KM, vectors = DEF_VECTOR_OVERRIDES_45KM): 
+        dmap_record.__init__(self, filename = filename)
 
         # create scalars and vectors with default args
         self.addScalar('rawacf.revision.major', 5, np.int32)
@@ -116,9 +116,9 @@ class rawacf_record(dmap_record):
 
         # TODO: calculate phase offset with back array
         self.vectors['acfd'].data[rgate,:,ISAMP] += samples_real
-        self.vectors['acfd'].data[rgate,:,QSAMP] += samples_imag
+        self.vectors['xcfd'].data[rgate,:,QSAMP] += samples_imag
 
-    def addTarget(self, rgate, velocity, spectral_width):
+    def addTarget(self, rgate, power, velocity, spectral_width):
         ''' add targets to a list of targets to generate scatter from using generateScatter '''
         pass
 
@@ -142,19 +142,16 @@ class rawacf_record(dmap_record):
         self.vectors['xcfd'].setData(xcfd)
 
 
-        
-
 def main():
-    dmap_file = file('sandbox/temp.rawacf', 'w')
-    test_record = rawacf_record(scalars = DEF_SCALAR_OVERRIDES_45KM, vectors = DEF_VECTOR_OVERRIDES_45KM)
+    test_record = rawacf_record(filename = 'sandbox/test.rawacf', scalars = DEF_SCALAR_OVERRIDES_45KM, vectors = DEF_VECTOR_OVERRIDES_45KM)
 
     test_record.setTime(datetime.datetime.now())
     test_record.applyNoise(.1)    
     test_record.addScatter(0, 200, 200, model = LAMBDA_FIT)
 
-    test_record.write(dmap_file)
+    test_record.write()
  
-    dmap_file.close()
+    test_record.close()
 
 if __name__ == '__main__':
     main()

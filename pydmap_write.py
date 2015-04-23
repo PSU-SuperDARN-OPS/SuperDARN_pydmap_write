@@ -62,9 +62,10 @@ class dmap_var:
         return datastr
 
 class dmap_record(object):
-    def __init__(self):
+    def __init__(self, filename = ''):
         self.scalars = collections.OrderedDict()
         self.vectors = collections.OrderedDict()
+        self.filename = filename
 
         self.addScalar('radar.revision.major', 0, np.uint8)
         self.addScalar('radar.revision.minor', 0, np.uint8)
@@ -110,6 +111,9 @@ class dmap_record(object):
         self.addScalar('mxpwr', 0, np.int32)
         self.addScalar('lvmax', 0, np.int32)
         self.addScalar('combf', 0, str)
+        
+        if self.filename:
+            self.dmap_file = file(self.filename, 'w')
 
     def setData(self, scalars, vectors):
         for s in scalars:
@@ -146,15 +150,19 @@ class dmap_record(object):
         for v in self.vectors:
             self.vector_str += self.vectors[v].getDmapPack(v)
    
-    def write(self, fp):
+    def write(self):
         self._makeScalarStr()
         self._makeVectorStr()
         self._makeHeader()
         
-        fp.write(self.header)
-        fp.write(self.scalar_str)
-        fp.write(self.vector_str)
-    
+        self.dmap_file.write(self.header)
+        self.dmap_file.write(self.scalar_str)
+        self.dmap_file.write(self.vector_str)
+
+    def close(self):
+        if self.filename:
+            self.dmap_file.close()
+
     def addScalar(self, name, val, dtype):
         self.scalars[name] = dmap_var(val, dtype)
     
