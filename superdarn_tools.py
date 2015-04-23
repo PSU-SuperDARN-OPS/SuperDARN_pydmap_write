@@ -1,6 +1,6 @@
 import numpy as np
-from remote_command import remote_command
 import re
+import subprocess
 import time
 
 C = 3e8
@@ -26,13 +26,10 @@ def descale_width(w, tfreq):
     return w * 2. * np.pi * tfreq * 1000 / C
 
 # grabs the tail off a dmap dump of a fitacf from a remote radar 
-def get_dmapdumpstring(radar, user = 'radar', lines = 200):
-    if 'sps' in radar:
-        return remote_command(user, radar, 'dmapdump -d /data/ros/fitacf/`ls -t /data/ros/fitacf/| head -1` | tail n ' + str(int(lines)))
-    if 'tst' in radar:
-        return remote_command(user, radar, 'dmapdump -d `~/repos/SuperDARN_pydmap_write/sandbox/`ls -t ~/repos/SuperDARN_pydmap_write/sandbox/*.fitacf | head -1` | tail -n ' + str(int(lines)))
-
-    return remote_command(user, radar, 'dmapdump -d /data/ros/fit/`ls -t /data/ros/fit/| head -1` | tail -n ' + str(int(lines)))
+def get_dmapdumpstring(lines = 200):
+    cmd = 'dmapdump -d `ls -t ~/repos/SuperDARN_pydmap_write/sandbox/*.fitacf | head -1` | tail -n ' + str(int(lines))
+    print 'command : {}'.format(cmd)
+    return subprocess.check_output(cmd, shell=True)
 
 # gets data from latest dmapdump, load variables into dict, return dict 
 # grab the last 200 lines or so to ensure a full record
