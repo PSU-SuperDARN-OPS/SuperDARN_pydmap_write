@@ -28,7 +28,6 @@ def descale_width(w, tfreq):
 # grabs the tail off a dmap dump of a fitacf from a remote radar 
 def get_dmapdumpstring(lines = 200):
     cmd = 'dmapdump -d `ls -t ~/repos/SuperDARN_pydmap_write/sandbox/*.fitacf | head -1` | tail -n ' + str(int(lines))
-    print 'command : {}'.format(cmd)
     return subprocess.check_output(cmd, shell=True)
 
 # gets data from latest dmapdump, load variables into dict, return dict 
@@ -63,7 +62,7 @@ def parse_dmapdumpstring(dumpstring):
             except:
                 print 'error parsing vector'
 
-        scandata[var] = vecvalue
+        scandata[var] = np.array(vecvalue)
     return scandata
 
 '''
