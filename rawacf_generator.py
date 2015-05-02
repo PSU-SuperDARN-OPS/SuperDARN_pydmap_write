@@ -96,6 +96,8 @@ class rawacf_record(dmap_record):
         for v in vectors:
             self.vectors[v].setData(vectors[v])
         
+        self.targets = []
+
     def setDefaults(rsep = 45):
         ''' sets sane default parameters for a given rsep (km)'''
         if rsep == 45:
@@ -118,16 +120,23 @@ class rawacf_record(dmap_record):
         self.vectors['acfd'].data[rgate,:,ISAMP] += samples_real
         self.vectors['xcfd'].data[rgate,:,QSAMP] += samples_imag
 
-    def addTarget(self, rgate, power, velocity, spectral_width):
+    def addTarget(self, target):
         ''' add targets to a list of targets to generate scatter from using generateScatter '''
-        pass
+        self.targets.append(target)
 
     def generateScatter(self):
-        ''' generate scatter including cross-range interference using a list of targets '''
-        pass
-    
-    def calcPwr0(self):
+        ''' generate scatter interference using a list of targets '''
+        # currently without cross-range interference..
 
+        for t in self.targets:
+            self.addScatter(t.rangegate, t.velocity, t.width)
+        
+
+    def calcPwr0(self):
+        ''' calculates pwr0 vector from acfd '''
+        # TODO: IMPLEMENT ME
+        acfd = self.vectors['acfd'].getData()
+        pwr0 = np.sum(np.power(acfd[:,0],2),axis=1)
         self.vectors['pwr0'].setData(pwr0)
 
     def applyNoise(self, level, noisemodel = np.random.randn):
@@ -146,7 +155,7 @@ def main():
     test_record = rawacf_record(filename = 'sandbox/test.rawacf', scalars = DEF_SCALAR_OVERRIDES_45KM, vectors = DEF_VECTOR_OVERRIDES_45KM)
 
     test_record.setTime(datetime.datetime.now())
-    test_record.applyNoise(.1)    
+    test_record.applyNoise(.01)    
     test_record.addScatter(0, 200, 200, model = LAMBDA_FIT)
 
     test_record.write()

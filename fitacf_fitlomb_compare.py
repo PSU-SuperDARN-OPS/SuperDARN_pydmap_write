@@ -28,7 +28,7 @@ HDF5_EXT = '.fitlomb.hdf5'
 
 RADAR = 'tst'
 RECORDTIME = datetime.datetime(2015, 1, 1, 0, 0)
-DEF_NOISE = 1
+DEF_NOISE = .1
 
 C = 3e8
 MAX_TFREQ = 16e6
@@ -40,28 +40,16 @@ MAX_V = 2000 # m/s, max velocity (doppler shift) to include in lomb
 MAX_W = 1200 # m/s, max spectral width to include in lomb 
 
 
-
-class target(object):
-    # defines a target a range rangekm with velocity and width in meters per second 
-    def __init__(self, rangegate = 0, velocity = 0, width = 0, power = 0, v_e = 0, w_e = 0, nlag = 0):
-        self.rangegate = rangegate
-        self.velocity = velocity
-        self.width = width
-        self.power = power
-        self.v_e = v_e
-        self.w_e = w_e
-        self.nlag = nlag
-
-
 # synthesizes a rawacf file with velocity and spectral width at gates rgates 
 def generate_rawacf(rawacfname, targets = [], noise = DEF_NOISE):
     rawacf = rawacf_record(filename = rawacfname)
 
     for target in targets:
-        rawacf.addTarget(target.rangegate, target.power, target.velocity, target.width)
+        rawacf.addTarget(target)
     
     rawacf.generateScatter()
     rawacf.applyNoise(noise)
+    rawacf.calcPwr0()
     rawacf.setTime(RECORDTIME) 
     rawacf.write()
     rawacf.close()
@@ -136,11 +124,30 @@ def parse_fitlomb(fitlombname, rgates):
     w_l =  beamgrp['w_l'][...]
     w_l_e = beamgrp['w_l_e'][...]
     nlag = beamgrp['nlag'][...]
-
     for rgate in rgates:
-        targets.append(target(rangegate = rgate, velocity = v[rgate], width = w_l[rgate], power = p_l[rgate], v_e = v_e[rgate], w_e = w_l_e[rgate], nlag = nlag))
+        targets.append(target(rangegate = rgate, velocity = v[rgate], width = w_l[rgate], power = p_l[rgate], v_e = v_e[rgate], w_e = w_l_e[rgate], nlag = nlag[rgate]))
 
     return targets
+
+def test_fitacf():
+    rawacf_name = SANDBOX + '/' + ACF_NAME + RAWACF_EXT
+    fitacf_name = SANDBOX + '/' + ACF_NAME + FITACF_EXT
+    synthetic_targets = []
+    t = target(rangegate = 5, velocity = 500, width = 200, power = 1)
+    synthetic_targets.append(t)
+
+    gates = [t.rangegate for t in synthetic_targets]
+    generate_rawacf(rawacf_name, targets = synthetic_targets, noise = .1)
+    generate_fitacf(rawacf_name, fitacf_name)
+    fitacf_targets = parse_fitacf(fitacf_name, gates)
+    
+    print 'synthetic targets:'
+    for t in synthetic_targets:
+        print t
+    print 'fitacf fitted targets:'
+    for t in fitacf_targets:
+        print t
+
 
 def main():
     print 'finished importing...'
@@ -150,8 +157,9 @@ def main():
 
     print 'creating targets...'
     synthetic_targets = []
-    t = target(rangegate = 5, velocity = 500, width = 200, power = 1)
-    synthetic_targets.append(t)
+    synthetic_targets.append(target(rangegate = 5, velocity = 500, width = 200, power = 1))
+    synthetic_targets.append(target(rangegate = 6, velocity = 300, width = 100, power = 1))
+    synthetic_targets.append(target(rangegate = 7, velocity = 000, width = 000, power = 1))
 
 
     gates = [t.rangegate for t in synthetic_targets]
@@ -167,10 +175,18 @@ def main():
 
     fitacf_targets = parse_fitacf(fitacf_name, gates)
     fitlomb_targets = parse_fitlomb(fitlomb_name, gates)
-        
-    
 
+    print 'synthetic targets:'
+    for t in synthetic_targets:
+        print t
 
+    print 'fitacf fitted targets:'
+    for t in fitacf_targets:
+        print t
+
+    print 'fitlomb fitted targets:'
+    for t in fitlomb_targets:
+        print t
 
 if __name__ == '__main__':
     main()
