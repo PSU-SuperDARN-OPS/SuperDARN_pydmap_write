@@ -118,7 +118,7 @@ class rawacf_record(dmap_record):
 
         # TODO: calculate phase offset with back array
         self.vectors['acfd'].data[rgate,:,ISAMP] += samples_real
-        self.vectors['xcfd'].data[rgate,:,QSAMP] += samples_imag
+        self.vectors['acfd'].data[rgate,:,QSAMP] += samples_imag
 
     def addTarget(self, target):
         ''' add targets to a list of targets to generate scatter from using generateScatter '''
