@@ -173,7 +173,7 @@ class dmap_record(object):
 
     def addVector(self, name, data, dtype):
         self.addVectorBlank(name, 0, data.shape, dtype)
-        self.vectors['name'].setData(data)
+        self.vectors[name].setData(data)
 
 
 class fitacf_record(dmap_record):
