@@ -6,6 +6,7 @@ import numpy as np
 import pdb
 import socket 
 import time
+import json
 
 DATACODE = 33
 DATACHAR = 1
@@ -85,14 +86,35 @@ def readPacket(sock):
     
     return scalars, vectors
 
+def createjson(scalars, vectors):
+    json_payload = {}
+
+    for scalar in scalars.keys():
+        payload = scalars[scalar]
+        if isinstance(payload, str):
+            json_payload[scalar] = payload
+        else:
+            json_payload[scalar] = np.asscalar(payload)
+
+    for vector in vectors.keys():
+        payload = vectors[vector]
+        # convert numpy array to list, recursively traverse and convert to jsonable data type..
+        payload = payload.tolist()
+        json_payload[vector] = payload
+    return json.dumps(json_payload)
+
+
 def main():
     HOST = 'superdarn.gi.alaska.edu'
     PORT = 6032
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT)) 
-    scalars, vectors = readPacket(s)
-    pdb.set_trace()
+    while True:
+        scalars, vectors = readPacket(s)
+        json_str = createjson(scalars, vectors)
+        print json_str
+
     s.close() 
 
 
