@@ -7,6 +7,8 @@ import pdb
 import socket 
 import time
 import json
+import datetime
+import time
 
 DATACODE = 33
 DATACHAR = 1
@@ -29,6 +31,9 @@ DTYPE_CODES = { \
     DATAINT:np.int32,\
     DATAFLOAT:np.float32,\
     DATASTRING:str}
+
+TIMEOUT = datetime.timedelta(seconds = 30)
+RESTART_DELAY = 5
 
 def recv_dtype(sock, dtype, nitems = 1):
     if dtype == str:
@@ -53,38 +58,48 @@ def recv_str(sock):
     return dstr
 
 def readPacket(sock):
-    # read in header
-    datacode = recv_dtype(sock, np.int32)
-    # this isn't very robust.. try to find header.. or something that looks like header
-    while datacode != 65537:
-        datacode = recv_dtype(sock, np.int32)
-    
-    sze = recv_dtype(sock, np.int32)
-    snum = recv_dtype(sock, np.int32)
-    anum = recv_dtype(sock, np.int32)
-
+    timeout = False
     scalars = {}
     vectors = {}
 
-    # read in scalars
-    for s in range(snum):
-        name = recv_str(sock)
-        dtype = DTYPE_CODES[recv_dtype(sock, np.uint8)]
-        payload = recv_dtype(sock, dtype)
-        scalars[name] = payload
+    # read in header
+    datacode = recv_dtype(sock, np.int32)
 
-    # read in vectors
-    for a in range(anum):
-        name = recv_str(sock)
-        dtype = DTYPE_CODES[recv_dtype(sock, np.uint8)]
-        ndims = recv_dtype(sock, np.int32)
-        dims = recv_dtype(sock, np.int32, ndims)
-        payload = recv_dtype(sock, dtype, np.prod(dims))
-        if ndims > 1:
-            payload = np.reshape(payload, tuple(dims[::-1]))
-        vectors[name] = payload
+    # this isn't very robust.. try to find header.. or something that looks like header
+    starttime = datetime.datetime.now()
+
+    while datacode != 65537:
+        print 'looking for header..'
+        datacode = recv_dtype(sock, np.int32)
+
+        if (starttime - datetime.datetime.now()) > TIMEOUT:
+            timeout = True
+            break
     
-    return scalars, vectors
+    if not timeout:
+        sze = recv_dtype(sock, np.int32)
+        snum = recv_dtype(sock, np.int32)
+        anum = recv_dtype(sock, np.int32)
+
+        # read in scalars
+        for s in range(snum):
+            name = recv_str(sock)
+            dtype = DTYPE_CODES[recv_dtype(sock, np.uint8)]
+            payload = recv_dtype(sock, dtype)
+            scalars[name] = payload
+
+        # read in vectors
+        for a in range(anum):
+            name = recv_str(sock)
+            dtype = DTYPE_CODES[recv_dtype(sock, np.uint8)]
+            ndims = recv_dtype(sock, np.int32)
+            dims = recv_dtype(sock, np.int32, ndims)
+            payload = recv_dtype(sock, dtype, np.prod(dims))
+            if ndims > 1:
+                payload = np.reshape(payload, tuple(dims[::-1]))
+            vectors[name] = payload
+    
+    return scalars, vectors, timeout
 
 def createjson(scalars, vectors):
     json_payload = {}
@@ -106,16 +121,20 @@ def createjson(scalars, vectors):
 
 def main():
     HOST = 'superdarn.gi.alaska.edu'
-    PORT = 6032
+    PORT = 6024
+    timeout = False
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT)) 
     while True:
-        scalars, vectors = readPacket(s)
-        json_str = createjson(scalars, vectors)
-        print json_str
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT)) 
+        while not timeout:
+            scalars, vectors, timeout = readPacket(s)
+            json_str = createjson(scalars, vectors)
+            print json_str
+        s.close() 
+        time.sleep(RESTART_DELAY)
 
-    s.close() 
+
 
 
 if __name__ == '__main__':
